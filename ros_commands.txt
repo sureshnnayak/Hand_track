@@ -1,0 +1,12 @@
+cd ~/catkin_ws
+source devel/setup.bash
+
+roscd beginner_tutorials
+
+#creating a message file 
+echo "int64 num" > msg/Num.msg
+
+#after creating the message file add below line to the packege.xml file
+
+<build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
