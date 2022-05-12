@@ -13,12 +13,37 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import datetime as dt
+#======================================ROS====================================
+
+import rospy
+from std_msgs.msg import String
+#======================================ROS====================================
 
 font = cv2.FONT_HERSHEY_SIMPLEX
 org = (20, 100)
 fontScale = .5
 color = (0,50,255)
 thickness = 1
+
+#=================REALSENSE======================
+
+REALSENSE_FOCAL_LENGTH = 1.93  # millimeters
+REALSENSE_SENSOR_HEIGHT_MM = 2.454  # millimeters
+REALSENSE_SENSOR_WIDTH_MM = 3.896  # millimeters
+REALSENSE_REZ_HEIGHT = 800  # pixels
+REALSENSE_REZ_WIDTH = 1280  # pixels
+REALSENSE_FX = 628.071 # D455
+REALSENSE_PPX = 637.01 # D455
+# REALSENSE_FX = 616.6 # D435
+# REALSENSE_PPX = 318.5 # D435
+REALSENSE_FX = 383.0088195800781 # D455
+REALSENSE_PPX = 320.8406066894531 # D455
+#ppy is:  238.125
+REALSENSE_PPY = 238.125 #D455
+
+#fy is:  383.0088195800781
+REALSENSE_FY = 383.0088195800781 #D455
+#=================REALSENSE======================
 
 # ====== Realsense ======
 realsense_ctx = rs.context()
@@ -70,7 +95,17 @@ print(f"\tConfiguration Successful for SN {device}")
 # ====== Get and process images ====== 
 print(f"Starting to capture images on SN: {device}")
 
-while True:
+
+#======================================ROS====================================
+pub = rospy.Publisher('Hand', String, queue_size=10)
+rospy.init_node('talker', anonymous=True)
+rate = rospy.Rate(10) # 10hz
+
+#while True:
+while not rospy.is_shutdown():
+
+    #======================================ROS====================================
+
     start_time = dt.datetime.today().timestamp()
 
     # Get and align frames
@@ -116,8 +151,18 @@ while True:
             mfk_distance = depth_image_flipped[y,x] * depth_scale # meters
             mfk_distance_feet = mfk_distance * 3.281 # feet
             images = cv2.putText(images, f"{hand_side} Hand Distance: {mfk_distance_feet:0.3} feet ({mfk_distance:0.3} m) away", org2, font, fontScale, color, thickness, cv2.LINE_AA)
-            print("depth:", mfk_distance)
+            #print("depth:", mfk_distance)
             i+=1
+            
+            #======================================ROS==================================== 
+            x_meter = ((x - (REALSENSE_PPX)) / REALSENSE_FX) * mfk_distance #rel_positions[i][1]
+            y_meter = ((y - (REALSENSE_PPY)) / REALSENSE_FY) * mfk_distance #rel_positions[i][1]
+
+            coordinates = "z(depth):"+ str(mfk_distance) +",\tx:" + str(x_meter)+"\ty:" + str(y_meter)
+            #rospy.loginfo(coordinates)
+            pub.publish(coordinates)
+            #======================================ROS====================================
+
         images = cv2.putText(images, f"Hands: {number_of_hands}", org, font, fontScale, color, thickness, cv2.LINE_AA)
     else:
         images = cv2.putText(images,"No Hands", org, font, fontScale, color, thickness, cv2.LINE_AA)

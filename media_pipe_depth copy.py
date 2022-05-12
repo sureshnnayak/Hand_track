@@ -20,6 +20,27 @@ fontScale = .5
 color = (0,50,255)
 thickness = 1
 
+
+#=================REALSENSE======================
+
+REALSENSE_FOCAL_LENGTH = 1.93  # millimeters
+REALSENSE_SENSOR_HEIGHT_MM = 2.454  # millimeters
+REALSENSE_SENSOR_WIDTH_MM = 3.896  # millimeters
+REALSENSE_REZ_HEIGHT = 800  # pixels
+REALSENSE_REZ_WIDTH = 1280  # pixels
+REALSENSE_FX = 628.071 # D455
+REALSENSE_PPX = 637.01 # D455
+# REALSENSE_FX = 616.6 # D435
+# REALSENSE_PPX = 318.5 # D435
+REALSENSE_FX = 383.0088195800781 # D455
+REALSENSE_PPX = 320.8406066894531 # D455
+#ppy is:  238.125
+REALSENSE_PPY = 238.125 #D455
+
+#fy is:  383.0088195800781
+REALSENSE_FY = 383.0088195800781 #D455
+#=================REALSENSE======================
+
 # ====== Realsense ======
 realsense_ctx = rs.context()
 connected_devices = [] # List of serial numbers for present cameras
