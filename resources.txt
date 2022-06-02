@@ -2,3 +2,4 @@ depth camera integration: https://medium.com/@smart-design-techology/hand-detect
 
 ros with realsense: https://github.com/IntelRealSense/realsense-ros
 
+Opencv verion 4.5.5
