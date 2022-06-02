@@ -56,7 +56,7 @@ def detect(image,type="DICT_5X5_100"):
     arucoParams = cv2.aruco.DetectorParameters_create()
     (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
         parameters=arucoParams)
-    
+    print(len(corners))
     """if len(corners) > 0:
         
         # flatten the ArUco IDs list
@@ -93,7 +93,7 @@ def detect(image,type="DICT_5X5_100"):
     #cv2.waitKey(0)
     """
     if len(corners) > 0:
- 
+        print(len(corners))
         ids = ids.flatten()
         # loop over the detected ArUCo corners
         for (markerCorner, markerID) in zip(corners, ids):
@@ -281,7 +281,7 @@ while not rospy.is_shutdown():
                 x_meter = ((x - (REALSENSE_PPX)) / REALSENSE_FX) * mfk_distance #rel_positions[i][1]
                 y_meter = ((y - (REALSENSE_PPY)) / REALSENSE_FY) * mfk_distance #rel_positions[i][1]
 
-                coordinates = "z(depth):"+ str(mfk_distance) +",\tx:" + str(x_meter)+"\ty:" + str(y_meter) + "\t Target_x: " + str(target_x_meter)+ "\ttarget_y:" + str(target_y_meter)
+                coordinates = "z(depth):"+ str(mfk_distance) +",\tx:" + str(x_meter)+"\ty:" + str(y_meter) + "\tTarget_x" + str(target_x_meter)+ "\ttarget_y:" + str(target_y_meter)
                 #rospy.loginfo(coordinates)
                 pub.publish(coordinates)
             #======================================ROS====================================
