@@ -13,6 +13,108 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import datetime as dt
+import imutils
+
+
+
+
+#======================================Target Object detection================
+# define names of each possible ArUco tag OpenCV supports
+ARUCO_DICT = {
+	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+	"DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+	"DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+	"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+	"DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+	"DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+	"DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+	"DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+	"DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+	"DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+	"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+	"DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+	"DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+	"DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+	"DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+	"DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+	"DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+	"DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
+}
+def detect(image,type="DICT_5X5_100"):
+    #resize the image
+    #image = imutils.resize(image, width=600)
+    # verify that the supplied ArUCo tag exists and is supported by
+    # OpenCV
+
+    # load the ArUCo dictionary, grab the ArUCo parameters, and detect
+    # the markers
+    #print("[INFO] detecting '{}' tags...".format(type))
+    arucoDict = cv2.aruco.Dictionary_get(ARUCO_DICT[type])
+    arucoParams = cv2.aruco.DetectorParameters_create()
+    (corners, ids, rejected) = cv2.aruco.detectMarkers(image, arucoDict,
+        parameters=arucoParams)
+    
+    """if len(corners) > 0:
+        
+        # flatten the ArUco IDs list
+        ids = ids.flatten()
+        for (markerCorner, markerID) in zip(corners, ids):
+                # extract the marker corners (which are always returned in
+                # top-left, top-right, bottom-right, and bottom-left order)
+                corners = markerCorner.reshape((4, 2))
+                (topLeft, topRight, bottomRight, bottomLeft) = corners
+                # convert each of the (x, y)-coordinate pairs to integers
+                topRight = (int(topRight[0]), int(topRight[1]))
+                bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+                bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+                topLeft = (int(topLeft[0]), int(topLeft[1]))
+
+
+        # draw the bounding box of the ArUCo detection
+                cv2.line(image, topLeft, topRight, (0, 255, 0), 2)
+                cv2.line(image, topRight, bottomRight, (0, 255, 0), 2)
+                cv2.line(image, bottomRight, bottomLeft, (0, 255, 0), 2)
+                cv2.line(image, bottomLeft, topLeft, (0, 255, 0), 2)
+                # compute and draw the center (x, y)-coordinates of the ArUco
+                # marker
+                cX = int((topLeft[0] + bottomRight[0]) / 2.0)
+                cY = int((topLeft[1] + bottomRight[1]) / 2.0)
+                cv2.circle(image, (cX, cY), 4, (0, 0, 255), -1)
+                # draw the ArUco marker ID on the image
+                cv2.putText(image, str(markerID),
+                    (topLeft[0], topLeft[1] - 15), cv2.FONT_HERSHEY_SIMPLEX,
+                    0.5, (0, 255, 0), 2)
+                print("[INFO] ArUco marker ID: {}".format(markerID))
+                # show the output image
+    cv2.imshow("Image", image)
+    #cv2.waitKey(0)
+    """
+    if len(corners) > 0:
+ 
+        ids = ids.flatten()
+        # loop over the detected ArUCo corners
+        for (markerCorner, markerID) in zip(corners, ids):
+            #=====================
+            corners = markerCorner.reshape((4, 2))
+            (topLeft, topRight, bottomRight, bottomLeft) = corners
+            # convert each of the (x, y)-coordinate pairs to integers
+            topRight = (int(topRight[0]), int(topRight[1]))
+            bottomRight = (int(bottomRight[0]), int(bottomRight[1]))
+            bottomLeft = (int(bottomLeft[0]), int(bottomLeft[1]))
+            topLeft = (int(topLeft[0]), int(topLeft[1]))
+    
+            
+            
+#============
+# =========
+            return topRight, bottomRight, bottomLeft,topLeft
+        #return cX,cY #only last object is returned in this case. if there are multiple objects we need to create a list 
+    return -1, -1, -1, -1
+#======================================Target Object detection================
+
 #======================================ROS====================================
 
 import rospy
@@ -121,18 +223,33 @@ while not rospy.is_shutdown():
     depth_image = np.asanyarray(aligned_depth_frame.get_data())
     depth_image_flipped = cv2.flip(depth_image,1)
     color_image = np.asanyarray(color_frame.get_data())
+    #detect target
+    #color_frame    
+    topRight, bottomRight, bottomLeft,topLeft = detect(color_image)
 
+    #topRight, bottomRight, bottomLeft,topLeft = detect( cv2.flip(color_image,1))
+    
     depth_image_3d = np.dstack((depth_image,depth_image,depth_image)) #Depth image is 1 channel, while color image is 3
     background_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), background_removed_color, color_image)
 
     depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+    images = background_removed
+    #images = cv2.flip(background_removed,1)
+    #color_image = cv2.flip(color_image,1)
+    
 
-    images = cv2.flip(background_removed,1)
-    color_image = cv2.flip(color_image,1)
+    
+
     color_images_rgb = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
 
     # Process hands
     results = hands.process(color_images_rgb)
+    #=============================================target detection======================================
+    #topRight, bottomRight, bottomLeft,topLeft = detect(color_images_rgb)
+    
+    #target_x, target_y = detect(color_images_rgb)
+
+    
     if results.multi_hand_landmarks:
         number_of_hands = len(results.multi_hand_landmarks)
         i=0
@@ -155,12 +272,18 @@ while not rospy.is_shutdown():
             i+=1
             
             #======================================ROS==================================== 
-            x_meter = ((x - (REALSENSE_PPX)) / REALSENSE_FX) * mfk_distance #rel_positions[i][1]
-            y_meter = ((y - (REALSENSE_PPY)) / REALSENSE_FY) * mfk_distance #rel_positions[i][1]
+            if hand_side =="Right" and topLeft != -1 :
+           
+                target_x = int((topLeft[0] + bottomRight[0]) / 2.0)
+                target_y = int((topLeft[1] + bottomRight[1]) / 2.0)
+                target_x_meter = ((target_x - (REALSENSE_PPX)) / REALSENSE_FX) * mfk_distance #rel_positions[i][1]
+                target_y_meter = ((target_y - (REALSENSE_PPY)) / REALSENSE_FY) * mfk_distance #rel_positions[i][1]
+                x_meter = ((x - (REALSENSE_PPX)) / REALSENSE_FX) * mfk_distance #rel_positions[i][1]
+                y_meter = ((y - (REALSENSE_PPY)) / REALSENSE_FY) * mfk_distance #rel_positions[i][1]
 
-            coordinates = "z(depth):"+ str(mfk_distance) +",\tx:" + str(x_meter)+"\ty:" + str(y_meter)
-            #rospy.loginfo(coordinates)
-            pub.publish(coordinates)
+                coordinates = "z(depth):"+ str(mfk_distance) +",\tx:" + str(x_meter)+"\ty:" + str(y_meter) + "\t Target_x: " + str(target_x_meter)+ "\ttarget_y:" + str(target_y_meter)
+                #rospy.loginfo(coordinates)
+                pub.publish(coordinates)
             #======================================ROS====================================
 
         images = cv2.putText(images, f"Hands: {number_of_hands}", org, font, fontScale, color, thickness, cv2.LINE_AA)
@@ -176,6 +299,15 @@ while not rospy.is_shutdown():
 
     name_of_window = 'SN: ' + str(device)
 
+    # ======================adding Bounding Box to target image==================================================
+    if topLeft != -1:
+        # draw the bounding box of the ArUCo detection
+        cv2.line(images, topLeft, topRight, (0, 255, 0), 2)
+        cv2.line(images, topRight, bottomRight, (0, 255, 0), 2)
+        cv2.line(images, bottomRight, bottomLeft, (0, 255, 0), 2)
+        cv2.line(images, bottomLeft, topLeft, (0, 255, 0), 2)
+    
+    # show the output image
     # Display images 
     cv2.namedWindow(name_of_window, cv2.WINDOW_AUTOSIZE)
     cv2.imshow(name_of_window, images)
@@ -184,7 +316,7 @@ while not rospy.is_shutdown():
     if key & 0xFF == ord('q') or key == 27:
         print(f"User pressed break key for SN: {device}")
         break
-
+    
 print(f"Application Closing")
 pipeline.stop()
 print(f"Application Closed.")
