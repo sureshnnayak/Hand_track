@@ -13,3 +13,8 @@ Steps to Run:
 1. run rosmaster:  roscore
 2. run listner code : python listener.py
 3. run object/hand tracking code : python media_pipe_dept.py
+to list ros topics : rostopic list
+4. record ros msg to bag:  rosbag record -O <bag file name> <topic1> <topic 2> eg rosbag record -O hand_target_track /hand_and_target /camera/odom/sample
+5. To start the position tracker:roslaunch /home/smartcane/cane_ws/src/realsense-ros/realsense2_camera/launch/rs_t265.launch
+
+src/realsense-ros/realsense2_camera/launch
